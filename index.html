@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Shooting Game</title>
+    <style>
+      body {
+        background-color: black;
+        color: white;
+        text-align: center;
+        font-size: 30px;
+        cursor: url(Classic\ Gun.cur), auto;
+      }
+
+      #canvas {
+        display: block;
+        margin: 0 auto;
+        border: 2px solid white;
+      }
+    </style>
+  </head>
+  <body>
+    <div>Score: <span id="score">0</span></div>
+    <div>Enemies: <span id="enemies">0</span></div>
+    <button onclick="location.reload()">Restart</button>
+    <br />
+    <br />
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+      const canvas = document.getElementById("canvas")
+      const ctx = canvas.getContext("2d")
+      let score = 0
+      let enemies = []
+      let gameOver = false
+
+      function createEnemy() {
+        const enemy = {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: 20,
+          color: "red"
+        }
+        enemies.push(enemy)
+      }
+
+      function drawEnemies() {
+        for (let i = 0; i < enemies.length; i++) {
+          const enemy = enemies[i]
+          ctx.beginPath()
+          ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2)
+          ctx.fillStyle = enemy.color
+          ctx.fill()
+        }
+      }
+
+      function updateEnemies() {
+        if (gameOver) {
+          ctx.font = "50px Arial"
+          ctx.fillText("GAME OVER", canvas.width / 2 - 150, canvas.height / 2)
+          return
+        }
+
+        for (let i = 0; i < enemies.length; i++) {
+          const enemy = enemies[i]
+          if (enemy.y > canvas.height + enemy.radius) {
+            enemies.splice(i, 1)
+            i--
+            if (!gameOver) {
+              score -= 50
+              if (score < 0) {
+                score = 0
+              }
+              document.getElementById("score").textContent = score
+            }
+          }
+        }
+        if (enemies.length < 10) {
+          createEnemy()
+        } else {
+          gameOver = true
+        }
+      }
+
+      function drawScore() {
+        document.getElementById("score").textContent = score
+      }
+
+      function drawEnemiesNumbers() {
+        document.getElementById("enemies").textContent = enemies.length
+      }
+
+      function update() {
+        if (!gameOver && score > 5000) {
+          ctx.fillStyle = "yellow"
+          ctx.font = "50px Arial"
+          ctx.fillText("Victory!", canvas.width / 2 - 75, canvas.height / 2)
+          return
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        drawEnemies()
+        drawEnemiesNumbers()
+        drawScore()
+        updateEnemies()
+        setTimeout(function () {
+          requestAnimationFrame(update)
+        }, 700)
+      }
+      update()
+
+      canvas.addEventListener("click", function (event) {
+        if (gameOver) {
+          return
+        }
+        const mouseX = event.clientX - canvas.offsetLeft
+        const mouseY = event.clientY - canvas.offsetTop
+        for (let i = 0; i < enemies.length; i++) {
+          const enemy = enemies[i]
+          const distance = Math.sqrt(
+            (enemy.x - mouseX) ** 2 + (enemy.y - mouseY) ** 2
+          )
+          if (distance <= enemy.radius) {
+            enemies.splice(i, 1)
+            score += 100
+            document.getElementById("score").textContent = score
+            break
+          }
+        }
+      })
+    </script>
+  </body>
+</html>
